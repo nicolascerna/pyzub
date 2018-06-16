@@ -6,7 +6,7 @@ Pyzub is a small package and CLI for manipulating subtitles
 
 - SubRip [.srt].
 
-** Plans to Support:**
+**Plans to Support:**
 
 - SubStation Alpha [.ssa]
 - SubViewer [.sub]
@@ -19,7 +19,7 @@ Run `pip install pyzub`
 ### Command Line Interface:
 
 At the moment only the *slide* command is available (arguably the most important feature).
-The *slide* command of *pyzub* lets you move your subtitles so you can synchronize your subtitles manually.
+The *slide* command of *pyzub* lets you move your subtitles so you can synchronize them manually.
 	
 ```
 $ pyzub slide -h
@@ -43,8 +43,15 @@ This will move your subtitles by 2.5 seconds (you can also give negative values)
 $ pyzub slide Game_of_Thrones_s03ep09.srt --seconds 2 --milliseconds 500
 ```
 
-By default it will generate an output file named *Game_of_Thrones_s03ep09_MODIFIED.srt*, unless ```--overwrite``` is used. The output file will always be in utf-8 encoding and use your system new line character.
+By default *pyzub* will generate an output file named *Game_of_Thrones_s03ep09_MODIFIED.srt*, unless ```--overwrite``` is used. The output file will always be in *utf-8* encoding and use your system new line character.
 
+This is OK too:
+
+```bash
+$ pyzub slide Game_of_Thrones_s03ep09.srt --seconds -70 --milliseconds 5000
+```
+ This would move your subtitles 65 seconds back.
+ 
 ### Package:
 
 You can read a subtitle file:
@@ -59,12 +66,12 @@ subfile = SRTFile(filepath)
 Iterate over the file:
 ```
 for subtitle in subfile:
-	print(subtitle)   
+	print(subtitle)
 ```
 
 Print a SRTFile:
 
-```
+```python
 print(subfile)
 ```
 
@@ -83,7 +90,7 @@ subtitle = subfile.get_subtitle(idx)
 
 Print the subtitle:
 
-```
+```python
 print(subtitle)
 ```
 
