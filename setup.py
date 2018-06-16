@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="pyzub",
-    version="0.1.3",
+    version="0.1.4",
     author="Nicolás Cerna",
     author_email="nicolascerna@uc.cl",
     description="A small package for manipulating subtitles",
