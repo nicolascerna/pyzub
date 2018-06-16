@@ -22,7 +22,7 @@ setuptools.setup(
         'Click',
         'chardet',
         'tqdm',
-    ]
+    ],
     entry_points={
         'console_scripts': ['pyzub=pyzub.cli:main', ],
     },
