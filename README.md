@@ -37,7 +37,7 @@ Options:
 
 **Example:**
 
-This will move your subtitles by 2.5 seconds (you can also give negative values).
+This will move your subtitles by 2.5 seconds (you can also give negative values):
 
 ```bash
 $ pyzub slide Game_of_Thrones_s03ep09.srt --seconds 2 --milliseconds 500
@@ -105,6 +105,7 @@ An of course modify anything you want directly:
 
 ```python
 subtile.text = 'modified subtitle'
+# times use timedelta from the datetime package
 subtitle.start_time = timedelta(minutes=10)
 
 # write the changes to disk
