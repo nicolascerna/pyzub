@@ -26,13 +26,14 @@ $ pyzub slide -h
 Usage: pyzub slide [OPTIONS] FILEPATH
 
 Options:
-  --hours INTEGER
-  --minutes INTEGER
-  --seconds INTEGER
-  --milliseconds INTEGER
-  --overwrite             Modifies the subtitle file in place.
-  --verbose               Displays a progress bar and a message when finished.
-  --help, -h              Show this message and exit.
+  --hours FLOAT
+  --minutes FLOAT
+  --seconds FLOAT
+  --milliseconds FLOAT
+  --microseconds FLOAT
+  --overwrite           Modifies the subtitle file in place.
+  --verbose             Displays a progress bar and a message when finished.
+  --help, -h            Show this message and exit.
 ```
 
 **Example:**
@@ -48,9 +49,9 @@ By default *pyzub* will generate an output file named *Game_of_Thrones_s03ep09_M
 This is OK too:
 
 ```bash
-$ pyzub slide Game_of_Thrones_s03ep09.srt --seconds -70 --milliseconds 5000
+$ pyzub slide Game_of_Thrones_s03ep09.srt --seconds -70.5 --milliseconds 5000
 ```
- This would move your subtitles 65 seconds back.
+ This would move your subtitles 65.5 seconds back ~~in time~~.
  
 ### Package:
 
