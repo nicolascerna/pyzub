@@ -3,13 +3,15 @@ import os
 import re
 
 from pyzub.utils import guess_codec
+from pyzub.subexceptions import InvalidTimeString
 from datetime import timedelta
+from tqdm import tqdm
 # =============================================================================
 
 
 class SRTFile():
     # =========================================================================
-    class _SRTSubtitle():
+    class SRTSubtitle():
 
         def __init__(self, index, start_time, end_time, text):
 
@@ -23,8 +25,8 @@ class SRTFile():
         def __str__(self):
 
             text = ('Index: {}\n'.format(self.index) +
-                    'Start Time: {}:{}:{},{}\n'.format(*self._start_time) +
-                    'End Time: {}:{}:{},{}\n'.format(*self._end_time) +
+                    'Start Time: {}\n'.format(self.start_time) +
+                    'End Time: {}\n'.format(self.end_time) +
                     'Text: {}'.format(self.text))
 
             return text
@@ -38,22 +40,15 @@ class SRTFile():
         @property
         def start_time(self):
 
-            h, m, s, ms = self._start_time
+            remainder = self._start_time.total_seconds()
 
-            return timedelta(hours=int(h), minutes=int(m), seconds=int(s),
-                             milliseconds=int(ms)).total_seconds()
-
-        @start_time.setter
-        def start_time(self, dt):
-
-            remainder = dt.total_seconds()
             h = int(remainder // 3600)
             remainder -= h * 3600
             m = int(remainder // 60)
             remainder -= m * 60
             s = int(remainder)
             remainder -= s
-            ms = int(remainder * 10**3)
+            ms = round(remainder * 10**3)
 
             h = '0' + str(h) if len(str(h)) < 2 else str(h)
             m = '0' + str(m) if len(str(m)) < 2 else str(m)
@@ -63,27 +58,46 @@ class SRTFile():
             while len(ms) < 3:
                 ms = '0' + ms
 
-            self._start_time = (h, m, s, ms)
+            return ','.join((':'.join((h, m, s)), ms))
+
+        @start_time.setter
+        def start_time(self, tm):
+
+            if isinstance(tm, timedelta):
+                self._start_time = tm
+
+            elif isinstance(tm, str):
+
+                regex_str = r'(\d+):(\d{2}):(\d{2}),(\d{3})'
+                regex = re.compile(regex_str)
+                match = regex.match(tm)
+
+                if match is not None:
+
+                    match_groups = match.groups()
+                    tm = timedelta(hours=int(match_groups[0]),
+                                   minutes=int(match_groups[1]),
+                                   seconds=int(match_groups[2]),
+                                   milliseconds=int(match_groups[3]))
+                    self._start_time = tm
+
+                else:
+                    raise InvalidTimeString
+            else:
+                raise TypeError
 
         @property
         def end_time(self):
 
-            h, m, s, us = self._end_time
+            remainder = self._end_time.total_seconds()
 
-            return timedelta(hours=int(h), minutes=int(m), seconds=int(s),
-                             microseconds=int(us)).total_seconds()
-
-        @end_time.setter
-        def end_time(self, dt):
-
-            remainder = dt.total_seconds()
             h = int(remainder // 3600)
             remainder -= h * 3600
             m = int(remainder // 60)
             remainder -= m * 60
             s = int(remainder)
             remainder -= s
-            ms = int(remainder * 10**3)
+            ms = round(remainder * 10**3)
 
             h = '0' + str(h) if len(str(h)) < 2 else str(h)
             m = '0' + str(m) if len(str(m)) < 2 else str(m)
@@ -93,7 +107,34 @@ class SRTFile():
             while len(ms) < 3:
                 ms = '0' + ms
 
-            self._end_time = (h, m, s, ms)
+            return ','.join((':'.join((h, m, s)), ms))
+
+        @end_time.setter
+        def end_time(self, tm):
+
+            if isinstance(tm, timedelta):
+                self._end_time = tm
+
+            elif isinstance(tm, str):
+
+                regex_str = r'(\d+):(\d{2}):(\d{2}),(\d{3})'
+                regex = re.compile(regex_str)
+                match = regex.match(tm)
+
+                if match is not None:
+
+                    match_groups = match.groups()
+                    tm = timedelta(hours=int(match_groups[0]),
+                                   minutes=int(match_groups[1]),
+                                   seconds=int(match_groups[2]),
+                                   milliseconds=int(match_groups[3]))
+                    self._end_time = tm
+
+                else:
+                    raise InvalidTimeString
+
+            else:
+                raise TypeError
 
     # =========================================================================
     def __init__(self, filepath, codec=None):
@@ -105,9 +146,9 @@ class SRTFile():
 
     def __str__(self):
 
-        text = ('Absolute Path: {}\n'.format(self.filepath) +
+        text = ('Relative Path: {}\n'.format(self.filepath) +
                 'Codec: {}\n'.format(self.codec) +
-                '#Subtitles: {}'.format(len(self._subtitles)))
+                'No. of Subtitles: {}'.format(len(self._subtitles)))
 
         return text
 
@@ -128,6 +169,22 @@ class SRTFile():
                 raise IndexError('Subtitle index out of range.')
 
         return self._subtitles[index - 1]
+
+    def slide(self, hours=0.0, minutes=0.0, seconds=0.0, milliseconds=0.0,
+              microseconds=0.0, progress_bar=False):
+
+        dt = timedelta(hours=hours,
+                       minutes=minutes,
+                       seconds=seconds,
+                       milliseconds=milliseconds,
+                       microseconds=microseconds)
+
+        for subtitle in tqdm(self, disable=not(progress_bar)):
+
+            aux = subtitle._start_time.total_seconds()
+            subtitle.start_time = timedelta(seconds=aux) + dt
+            aux = subtitle._end_time.total_seconds()
+            subtitle.end_time = timedelta(seconds=aux) + dt
 
     def _load(self):
 
@@ -165,7 +222,17 @@ class SRTFile():
             end_time = tuple(match_group[5:9])
             text = match_group[9]
 
-            srt_sub = SRTFile._SRTSubtitle(index, start_time, end_time, text)
+            start_time = timedelta(hours=int(start_time[0]),
+                                   minutes=int(start_time[1]),
+                                   seconds=int(start_time[2]),
+                                   milliseconds=int(start_time[3]))
+
+            end_time = timedelta(hours=int(end_time[0]),
+                                 minutes=int(end_time[1]),
+                                 seconds=int(end_time[2]),
+                                 milliseconds=int(end_time[3]))
+
+            srt_sub = SRTFile.SRTSubtitle(index, start_time, end_time, text)
             subtitles.append(srt_sub)
 
         return subtitles
@@ -174,28 +241,16 @@ class SRTFile():
 
         with open(filepath, 'w', encoding='utf-8') as f:
 
-            for index, subtitle in enumerate(self._subtitles):
+            for index, subtitle in enumerate(self):
 
-                for key, item in subtitle.__dict__.items():
+                f.write(subtitle.index)
+                f.write(os.linesep)
 
-                    if key == 'index':
+                f.write(subtitle.start_time + ' --> ' + subtitle.end_time)
+                f.write(os.linesep)
 
-                        f.write(item)
-                        f.write(os.linesep)
+                f.write(subtitle.text)
+                f.write(os.linesep)
 
-                    if key == '_start_time':
-                        f.write(':'.join(item[:-1]) + ',' + item[-1] + ' --> ')
-
-                    elif key == '_end_time':
-
-                        f.write(':'.join(item[:-1]) + ',' + item[-1])
-                        f.write(os.linesep)
-
-                    elif key == 'text':
-                        f.write(item)
-
-                        if index != len(self._subtitles) - 1:
-                            f.write(os.linesep)
-
-                if index != len(self._subtitles) - 1:
+                if index != len(self) - 1:
                     f.write(os.linesep)

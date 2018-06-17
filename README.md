@@ -77,9 +77,9 @@ print(subfile)
 ```
 
 ```
-Path: /home/user/mysubtitle.srt
+Relative Path: /home/user/mysubtitle.srt
 Codec: ISO-8859-1
-Subtitles: 451
+No. of Subtitles: 451
 ```
 
 Get a subtitle:
@@ -105,20 +105,33 @@ Text: En un día cualquiera,
 An of course modify anything you want directly:
 
 ```python
+# modify the text
 subtile.text = 'modified subtitle'
+
 # times use timedelta from the datetime package
 subtitle.start_time = timedelta(minutes=10)
+# also, you can assign directly a string
+subtitle.end_time = '01:25:59,650'
 
 # write the changes to disk
 subfile.dump('/home/user/mysubtitle_modified.srt')
 ```
 
-### Planed features:
+And finally:
 
+```
+print(len(subfile))
+# output: 451 (i.e, the number of subtitles in the file)
+```
+
+```
+print(len(subtitle))
+# output: 21 (i.e, the number of chars in the subtitle's text attribute)
+```
+
+### Planned features:
+- Insert, delete subtitles, etc.
 - Automatic grammar and syntax correction
-- Automatic synchronization from audio
-- Automatic subtitle file downloads
-
 
 ### License
 

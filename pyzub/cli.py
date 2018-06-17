@@ -4,8 +4,6 @@
 
 import click
 
-from tqdm import tqdm
-from datetime import timedelta
 from pyzub.subfiles import SRTFile
 
 # Params ======================================================================
@@ -23,10 +21,11 @@ def main():
 
 @main.command()
 @click.argument('filepath')
-@click.option('--hours', default=0)
-@click.option('--minutes', default=0)
-@click.option('--seconds', default=0)
-@click.option('--milliseconds', default=0)
+@click.option('--hours', default=0.0)
+@click.option('--minutes', default=0.0)
+@click.option('--seconds', default=0.0)
+@click.option('--milliseconds', default=0.0)
+@click.option('--microseconds', default=0.0)
 @click.option('--overwrite', is_flag=True,
               help='Modifies the subtitle file in place.')
 @click.option('--verbose', is_flag=True,
@@ -37,15 +36,12 @@ def slide(**kwargs):
 
     subfile = SRTFile(filepath)
 
-    dt = timedelta(hours=kwargs['hours'],
-                   minutes=kwargs['minutes'],
-                   seconds=kwargs['seconds'],
-                   milliseconds=kwargs['milliseconds'])
-
-    for subtitle in tqdm(subfile, disable=not(kwargs['verbose'])):
-
-        subtitle.start_time = timedelta(seconds=subtitle.start_time) + dt
-        subtitle.end_time = timedelta(seconds=subtitle.end_time) + dt
+    subfile.slide(hours=kwargs['hours'],
+                  minutes=kwargs['minutes'],
+                  seconds=kwargs['seconds'],
+                  milliseconds=kwargs['milliseconds'],
+                  microseconds=kwargs['microseconds'],
+                  progress_bar=kwargs['verbose'])
 
     if kwargs['overwrite'] is True:
 
